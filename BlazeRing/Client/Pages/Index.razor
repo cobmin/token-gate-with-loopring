@@ -69,7 +69,7 @@
     // LRC Asset Check
     <div class="status-message">
         <h2>LRC Token Gate</h2>
-        @if (userLRCAssets != null && decimal.Parse(userLRCAssets[0].total)/1000000000 > 100)
+        @if (userLRCAssets != null && decimal.Parse(userLRCAssets[0].total)/1000000000000000000 > 100)
         {
             <p>You own at least 100 LRC 🙌</p>
         }
