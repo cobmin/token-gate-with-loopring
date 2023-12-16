@@ -11,18 +11,12 @@
 
 <div class="intro-message text-center">
     <p>Welcome to LoopLock, your straightforward guide to token gating with Loopring. Discover how to unlock the potential of NFTs and crypto for gating digital content and experiences.</p>
+    <p>View code <a href="@BlazeRingConstants.githubIndex">here</a>.</p>
 </div>
 
 
 <div class="status-message">
-    @if (apiKey == null)
-    {
-        <p>@contentStatus</p>
-    }
-    else
-    {
-        <p>@contentStatus view code logic <a href="@BlazeRingConstants.githubIndex">here</a>.</p>
-    }
+    @contentStatus
 </div>
 
 @if (apiKey != null)
