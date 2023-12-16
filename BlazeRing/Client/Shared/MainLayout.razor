@@ -1,16 +1,22 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-
-    <main>
-        <div class="top-row px-4">
-        </div>
+    <main class="full-width">
 
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
+
+<style>
+    .full-width {
+        width: 100%;
+    }
+
+    .content {
+        margin: auto;
+        max-width: 960px; /* Adjust the width as needed */
+        padding: 20px;
+    }
+</style>

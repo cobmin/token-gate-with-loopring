@@ -1,6 +1,172 @@
 ﻿@page "/"
+@using BlazeRing.Shared;
+@inject HttpClient Http
 
-<PageTitle>Index</PageTitle>
+<PageTitle>LoopLock</PageTitle>
 
-<BrowserWallet></BrowserWallet>
-<WalletConnect></WalletConnect>
+<div class="wallet-buttons-container">
+    <BrowserWallet @ref="browserWalletComponent" />
+    <WalletConnect @ref="walletConnectComponent" />
+</div>
+
+<div class="intro-message text-center">
+    <p>Welcome to LoopLock, your straightforward guide to token gating with Loopring. Discover how to unlock the potential of NFTs for gating digital content and experiences.</p>
+</div>
+
+
+<div class="status-message">
+    @if (apiKey == null)
+    {
+        <p>@contentStatus</p>
+    }
+    else
+    {
+        <p>@contentStatus view code logic <a href="@BlazeRingConstants.githubIndex">here</a>.</p>
+    }
+</div>
+
+@if (apiKey != null)
+{
+    // Single NFT Check
+    <div class="status-message">
+        <h2>Single NFT Token Gate</h2>
+        @if (userSingleNftAsset != null && userSingleNftAsset.totalNum > 0)
+        {
+            <p>You are an owner of <a href="@BlazeRingConstants.singleNftLinkUrl">@singleLinkText</a> 🙌</p>
+        }
+        else
+        {
+            <p>You are not an owner of <a href="@BlazeRingConstants.singleNftLinkUrl">@singleLinkText</a> 👎</p>
+        }
+        <p class="request-url">Request: @getSingleNft </p>
+        <p>Check the API documentation <a href="@BlazeRingConstants.nftAssetsDocUrl">here</a>.</p>
+    </div>
+
+    // Multiple NFTs Check
+    <div class="status-message">
+        <h2>Multiple NFT Token Gate</h2>
+        @if (userMultipleNftAssets != null && userMultipleNftAssets.totalNum > 0)
+        {
+            <p>You are an owner of at least one of <a href="@BlazeRingConstants.multipleNftLinkUrl">@multipleLinkText</a> 🙌</p>
+        }
+        else
+        {
+            <p>You are not an owner of at least one of <a href="@BlazeRingConstants.multipleNftLinkUrl">@multipleLinkText</a> 👎</p>
+        }
+        <p class="request-url">Request: @getMultipleNfts </p>
+        <p>Check the API documentation <a href="@BlazeRingConstants.nftAssetsDocUrl">here</a>.</p>
+    </div>
+
+    // Collection NFTs Check
+    <div class="status-message">
+        <h2>Collection NFT Token Gate</h2>
+        @if (userCollectionNftAssets != null && userCollectionNftAssets.totalNum > 0)
+        {
+            <p>You are an owner of at least one NFT in <a href="@BlazeRingConstants.collectionNftLinkUrl">@collectionLinkText</a> 🙌</p>
+        }
+        else
+        {
+            <p>You are not an owner of at least one NFT in <a href="@BlazeRingConstants.collectionNftLinkUrl">@collectionLinkText</a> 👎</p>
+        }
+        <p class="request-url">Request: @getCollectionNfts </p>
+        <p>Check the API documentation <a href="@BlazeRingConstants.collectionAssetsDocUrl">here</a>.</p>
+    </div>
+
+    // LRC Asset Check
+    <div class="status-message">
+        <h2>LRC Token Gate</h2>
+        @if (userLRCAssets != null && decimal.Parse(userLRCAssets[0].total)/1000000000 > 100)
+        {
+            <p>You own at least 100 LRC 🙌</p>
+        }
+        else
+        {
+            <p>You are not an owner of at least 100 LRC 👎</p>
+        }
+        <p class="request-url">Request: @getUserLRC </p>
+        <p>Check the API documentation <a href="@BlazeRingConstants.cryptoAssetsDocUrl">here</a>.</p>
+    </div>
+}
+
+@code {
+    private BrowserWallet? browserWalletComponent;
+    private WalletConnect? walletConnectComponent;
+
+    private string contentStatus = "Connect your wallet to begin.";
+    private string singleLinkText = "this NFT.";
+    private string multipleLinkText = "these NFTs.";
+    private string collectionLinkText = "this collection.";
+
+    private string? getSingleNft;
+    private string? getMultipleNfts;
+    private string? getCollectionNfts;
+    private string? getUserLRC;
+
+    private ApiKey? apiKey;
+    private NftAssets? userSingleNftAsset;
+    private NftAssets? userMultipleNftAssets;
+    private CollectionInformation? userCollectionNftAssets;
+    private AccountInformation? accountInformation;
+    private List<CryptoAssets>? userLRCAssets;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            browserWalletComponent.OnWalletConnected += OnWalletConnected;
+            walletConnectComponent.OnWalletConnected += OnWalletConnected;
+        }
+    }
+
+    private void OnWalletConnected(WalletConnectionEventArgs args)
+    {
+        accountInformation = args.AccountInfo;
+        apiKey = args.ApiKey;
+        InvokeAsync(ShowUserContent);
+    }
+
+    private async Task ShowUserContent()
+    {
+        try
+        {
+            contentStatus = "Searching...";
+            StateHasChanged();
+
+            Http.DefaultRequestHeaders.Remove("X-API-KEY");
+            Http.DefaultRequestHeaders.Add("X-API-KEY", apiKey?.apiKey);
+
+            // Single NFT Call
+            getSingleNft = $"{BlazeRingConstants.ApiUrl}/{BlazeRingConstants.GetUserNFTsEndpoint}?accountId={accountInformation?.accountId}&nftDatas={BlazeRingConstants.specificNftData}&nonZero=true";
+            userSingleNftAsset = await Http.GetFromJsonAsync<NftAssets>(getSingleNft);
+
+            // Multiple NFTs Call
+            getMultipleNfts = $"{BlazeRingConstants.ApiUrl}/{BlazeRingConstants.GetUserNFTsEndpoint}?accountId={accountInformation?.accountId}&nftDatas={BlazeRingConstants.specificNftDatas}&nonZero=true";
+            userMultipleNftAssets = await Http.GetFromJsonAsync<NftAssets>(getMultipleNfts);
+
+            // Collection NFTs Call
+            getCollectionNfts = $"{BlazeRingConstants.ApiUrl}/{BlazeRingConstants.GetUserNFTsByCollectionEndpoint}?owner={accountInformation?.owner}&tokenAddress={BlazeRingConstants.specificCollectionAddress}";
+            userCollectionNftAssets = await Http.GetFromJsonAsync<CollectionInformation>(getCollectionNfts);
+
+            // LRC Asset Call
+            getUserLRC = $"{BlazeRingConstants.ApiUrl}/{BlazeRingConstants.GetUserAssetsEndpoint}?accountId={accountInformation?.accountId}&tokens={BlazeRingConstants.lrcTokenId}";
+            userLRCAssets = await Http.GetFromJsonAsync<List<CryptoAssets>>(getUserLRC);
+
+            contentStatus = "Showing content:";
+        }
+        catch (Exception ex)
+        {
+            contentStatus = "Rejected signing...Try Again!";
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        browserWalletComponent.OnWalletConnected -= OnWalletConnected;
+        walletConnectComponent.OnWalletConnected -= OnWalletConnected;
+    }
+}

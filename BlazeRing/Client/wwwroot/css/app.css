@@ -2,20 +2,22 @@
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #121212; /* Dark background for the whole page */
+    color: #f5f5f5; /* Lighter text that contrasts well against dark background */
 }
 
 h1:focus {
     outline: none;
 }
 
-a, .btn-link {
-    color: #0071c1;
+a, .btn-link, .request-url a {
+    color: #0d6efd; /* Bright color for links */
 }
 
 .btn-primary {
     color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    background-color: #007bff;
+    border-color: #007bff;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
@@ -99,3 +101,45 @@ a, .btn-link {
     .loading-progress-text:after {
         content: var(--blazor-load-percentage-text, "Loading");
     }
+
+.status-message, .intro-message {
+    background-color: #1e1e1e; /* Dark background for status and intro messages */
+    color: #f5f5f5; /* Light text for readability */
+    border: 1px solid #333; /* Darker border for subtle contrast */
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+    .status-message .request-url {
+        word-break: break-all;
+        color: #f5f5f5; /* Ensuring text inside .request-url is also light */
+    }
+
+.qr-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* Above other content */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #333; /* Darker text color for readability */
+}
+
+.qr-code-container {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    color: #333; /* Apply the same text color as the modal for consistency */
+}
+.wallet-buttons-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}

@@ -15,10 +15,10 @@
     <button type="button" class="btn btn-primary" @onclick="Connect">@connectStatus</button>
     @if (!string.IsNullOrEmpty(base64Image))
     {
-        <div>
-            <img src="@base64Image" width="256" height="256" />
+        <div class="qr-modal">
+            <img src="@base64Image" width="256" height="256" alt="Wallet QR Code" />
             <p>Scan this QR Code using your Loopring Smart Wallet</p>
-            <p>@connectData.Uri</p>
+            <button class="btn btn-secondary" @onclick="CloseQrModal">Close</button>
         </div>
     }
 }
@@ -31,11 +31,6 @@ else
     else if (apiKey != null)
     {
         <button type ="button" class="btn btn-primary" @onclick="(async () => await Disconnect())">Disconnect</button>
-        <button type="button" class="btn btn-primary" @onclick="ShowApiKey">Show API Key</button>
-        @if (showApiKeyText)
-        {
-            <p>Your api key is @apiKey.apiKey</p>
-        }
     }
 }
 
@@ -43,6 +38,7 @@ else
     private string? accountAddress;
     private AccountInformation? accountInformation;
     private ApiKey? apiKey;
+    private NftAssets? userNftAssets;
     private string? base64Image;
 
     private string? connectStatus = "Connect with WalletConnect";
@@ -51,28 +47,20 @@ else
     private WalletConnectSignClient? dappClient;
     private ConnectedData? connectData;
     private SessionStruct? sessionData;
-
-    private bool showApiKeyText = false;
-
-    private void ShowApiKey()
-    {
-        showApiKeyText = !showApiKeyText;
-    }
-
+    public event Action<WalletConnectionEventArgs> OnWalletConnected;
 
     private async Task Connect()
     {
         try
         {
-
             var dappOptions = new SignClientOptions()
                 {
-                    ProjectId = "0a0b4427350974a116cebee8c20bb61b",
+                    ProjectId = "fe0f51ef24ee2d0540819ab45474460c",
                     Metadata = new Metadata()
                     {
-                        Description = "An Example Project using BlazeRing",
+                        Description = "How to Token Gate with Loopring NFTs and Crypto",
                         Icons = new[] { "https://walletconnect.com/meta/favicon.ico" },
-                        Name = "BlazeRing",
+                        Name = "LoopLock",
                         Url = "https://blazering.xyz"
                     },
                     Storage = new InMemoryStorage()
@@ -173,12 +161,27 @@ else
             Http.DefaultRequestHeaders.Add("x-api-sig", xApiSig);
             var getApiKeyEndpoint = $"{BlazeRingConstants.ApiUrl}/{BlazeRingConstants.GetApiKeyEndpoint}?accountId={accountInformation.accountId}";
             apiKey = await Http.GetFromJsonAsync<ApiKey>(getApiKeyEndpoint);
+
+            if (apiKey != null && accountInformation != null)
+            {
+                var args = new WalletConnectionEventArgs
+                    {
+                        AccountInfo = accountInformation,
+                        ApiKey = apiKey
+                    };
+                OnWalletConnected?.Invoke(args);
+            }
         }
         catch (Exception ex)
         {
             unlockStatus = "Rejected signing...Try Again!";
             Console.WriteLine($"Error: {ex.Message}");
         }
+    }
+
+    private void CloseQrModal()
+    {
+        base64Image = null;
     }
 
     private async Task Disconnect()
